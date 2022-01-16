@@ -37,7 +37,7 @@ fn main() {
 	let (mut rl, thread) = raylib::init()
 		.size(640, 480)
 		.resizable()
-		.title("Hello, World")
+		.title("Pomodoro")
 		.build();
 
 	let focus_time = 25 * 60;
