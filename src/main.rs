@@ -25,7 +25,7 @@ fn draw_text_centered(text: &str, d: &mut RaylibDrawHandle) {
 		d.get_screen_width() / 2 - measure_text(&text, d.get_screen_width() / 8) / 2,
 		d.get_screen_height() / 2 - d.get_screen_height() / 8,
 		d.get_screen_width() / 8,
-		Color::GRAY,
+		Color::WHITE,
 	);
 }
 
@@ -40,6 +40,8 @@ fn main() {
 		.title("Pomodoro")
 		.build();
 
+	rl.set_target_fps(20);
+
 	let focus_time = 25 * 60;
 	let break_time = 5 * 60;
 	let long_break_time = 15 * 60;
@@ -51,10 +53,6 @@ fn main() {
 	while !rl.window_should_close() {
 		let mut d = rl.begin_drawing(&thread);
 
-		if d.is_key_pressed(KeyboardKey::KEY_SPACE) && state == State::NotRunning {
-			state = next_state.to_owned();
-			start = SystemTime::now();
-		}
 		match state {
 			State::NotRunning => {
 				d.clear_background(Color::DARKGRAY);
@@ -62,6 +60,33 @@ fn main() {
 					&("Next: ".to_owned() + state_to_string(&next_state)),
 					&mut d,
 				);
+
+				let rec = Rectangle::new(
+					(d.get_screen_width() / 4) as f32,
+					(2 * d.get_screen_height() / 3) as f32,
+					(d.get_screen_width() / 2) as f32,
+					(d.get_screen_height() / 5) as f32,
+				);
+
+				d.draw_rectangle_rec(rec, Color::WHITE);
+				let text = "Start!";
+				let vertical_margin = 10.0;
+				let font_size = (rec.height - vertical_margin) as i32;
+				d.draw_text(
+					text,
+					(rec.width as i32 - measure_text(text, font_size)) / 2 + rec.x as i32,
+					(rec.y + vertical_margin) as i32,
+					font_size,
+					Color::DARKGRAY,
+				);
+
+				if d.is_key_pressed(KeyboardKey::KEY_SPACE)
+					|| (rec.check_collision_point_rec(d.get_mouse_position())
+						&& d.is_mouse_button_pressed(MouseButton::MOUSE_LEFT_BUTTON))
+				{
+					state = next_state.to_owned();
+					start = SystemTime::now();
+				}
 			}
 			State::Focus => {
 				d.clear_background(Color::RED);
